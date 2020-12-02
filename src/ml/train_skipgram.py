@@ -33,13 +33,13 @@ from scipy.spatial import distance
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Training REA IPP MY location embeddings on Pytorch')
-    parser.add_argument('read_seq', type=str, help='Path to sequences.p')
-    parser.add_argument('read_loc_dict', type=str, help='Path to location dict for vocabs')
-    parser.add_argument('batch_size', type=int, help='Batchsize for dataloader', default=16)
-    parser.add_argument('embedding_dims', type=int, help='Embedding size', default=128)
-    parser.add_argument('initial_lr', type=float, help='Initial LR', default=0.025)
-    parser.add_argument('epochs', type=int, help='No of Epochs', default=25)
-    parser.add_argument('shuffle', type=bool, help='Shuffle ?', default=True)
+    parser.add_argument('--read_seq', type=str, help='Path to sequences.p')
+    parser.add_argument('--read_loc_dict', type=str, help='Path to location dict for vocabs')
+    parser.add_argument('--batch_size', type=int, help='Batchsize for dataloader', default=16)
+    parser.add_argument('--embedding_dims', type=int, help='Embedding size', default=128)
+    parser.add_argument('--initial_lr', type=float, help='Initial LR', default=0.025)
+    parser.add_argument('--epochs', type=int, help='No of Epochs', default=25)
+    parser.add_argument('--shuffle', type=bool, help='Shuffle ?', default=True)
     args = parser.parse_args()
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
