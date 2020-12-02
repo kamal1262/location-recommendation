@@ -43,13 +43,14 @@ if __name__ == "__main__":
     batch_size = args.batch_size
     n_workers = 16
     
-    vocab_size = 14699
     
     with open(args.read_path, 'rb') as f:
         list_seq = pickle.load(f)
         
     with open(args.read_loc_dict, 'rb') as f:
         dict_loc = pickle.load(f)
+    
+    vocab_size = len(dict_loc) # 14699
     
     # Load dataloader
     sequences = Sequences(seq_list=list_seq, vocab_dict=dict_loc)
@@ -91,10 +92,10 @@ if __name__ == "__main__":
         running_loss = 0
 
         # save model
-        current_datetime = datetime.datetime.now().strftime('%Y-%m-%d-%H%M')
-        state_dict_path = '{}/skipgram_epoch_{}_{}.pt'.format(MODEL_PATH, epoch, current_datetime)
-        torch.save(skipgram.state_dict(), state_dict_path)
-        logger.info('Model state dict saved to {}'.format(state_dict_path))
+        # current_datetime = datetime.datetime.now().strftime('%Y-%m-%d-%H%M')
+        # state_dict_path = '{}/skipgram_epoch_{}_{}.pt'.format(MODEL_PATH, epoch, current_datetime)
+        # torch.save(skipgram.state_dict(), state_dict_path)
+        # logger.info('Model state dict saved to {}'.format(state_dict_path))
 
     end_time = datetime.datetime.now()
     time_diff = round((end_time - start_time).total_seconds() / 60, 2)
