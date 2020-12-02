@@ -30,18 +30,20 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Training embeddings on torch')
     parser.add_argument('read_seq', type=str, help='Path to sequences.p')
     parser.add_argument('read_loc_dict', type=str, help='Path to location dict for vocabs')
-    parser.add_argument('batch_size', type=int, help='Batchsize for dataloader')
-    parser.add_argument('embedding_dims', type=int, help='Embedding size')
+    parser.add_argument('batch_size', type=int, help='Batchsize for dataloader', default=16)
+    parser.add_argument('embedding_dims', type=int, help='Embedding size', default=128)
+    parser.add_argument('initial_lr', type=int, help='Initial LR', default=0.025)
+    parser.add_argument('epochs', type=int, help='No of Epochs', default=25)
+    parser.add_argument('shuffle', type=bool, help='Shuffle ?', default=True)
     args = parser.parse_args()
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    shuffle = True
+    shuffle = args.shuffle
     embedding_dims = args.embedding_dims
-    epochs = 25
-    initial_lr = 0.025
+    epochs = args.epochs
+    initial_lr = args.initial_lr
     batch_size = args.batch_size
-    n_workers = 16
     
     
     with open(args.read_path, 'rb') as f:
@@ -58,7 +60,6 @@ if __name__ == "__main__":
     dataloader = DataLoader(dataset, 
                             batch_size=batch_size, 
                             shuffle=shuffle, 
-                            # num_workers=n_workers, 
                             collate_fn=dataset.collate)
 
     # Initialize model
