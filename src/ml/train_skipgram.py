@@ -1,10 +1,13 @@
 import torch
-from torch.autograd import Variable
 import numpy as np
-import torch.functional as F
-import torch.nn.functional as F
+
 from torch import nn
 from torch import optim
+
+import torch.functional as F
+import torch.nn.functional as F
+
+from torch.autograd import Variable
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 
@@ -14,6 +17,7 @@ import argparse
 import datetime
 import itertools
 
+from tqdm import tqdm
 from typing import Any
 from collections import Counter
 from typing import Dict, List, Tuple
@@ -28,12 +32,12 @@ from scipy.spatial import distance
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Training embeddings on torch')
+    parser = argparse.ArgumentParser(description='Training REA IPP MY location embeddings on Pytorch')
     parser.add_argument('read_seq', type=str, help='Path to sequences.p')
     parser.add_argument('read_loc_dict', type=str, help='Path to location dict for vocabs')
     parser.add_argument('batch_size', type=int, help='Batchsize for dataloader', default=16)
     parser.add_argument('embedding_dims', type=int, help='Embedding size', default=128)
-    parser.add_argument('initial_lr', type=int, help='Initial LR', default=0.025)
+    parser.add_argument('initial_lr', type=float, help='Initial LR', default=0.025)
     parser.add_argument('epochs', type=int, help='No of Epochs', default=25)
     parser.add_argument('shuffle', type=bool, help='Shuffle ?', default=True)
     args = parser.parse_args()
@@ -47,7 +51,7 @@ if __name__ == "__main__":
     batch_size = args.batch_size
     
     
-    with open(args.read_path, 'rb') as f:
+    with open(args.read_seq, 'rb') as f:
         list_seq = pickle.load(f)
         
     with open(args.read_loc_dict, 'rb') as f:
