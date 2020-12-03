@@ -188,5 +188,5 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh \
  && wget -O /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.6.0/license.txt
 
 # Starts framework
-ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
+ENTRYPOINT ["bash", "-m", "training.sh"]
 CMD ["/bin/bash"]
