@@ -142,5 +142,5 @@ cython_debug/
 ***/sample.csv
 ***/models/skipgram_epoch*
 ***/models/embeddings*
-***/models/list_seq.p
+***/data/list_seq.p
 ***/runs/*

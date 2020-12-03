@@ -30,11 +30,18 @@ from src.ml.data_loader import Sequences, SequencesDataset
 
 from scipy.spatial import distance
 
+def save_model(model, model_dir):
+    logger.info("Saving the model.")
+    path = os.path.join(model_dir, 'model.pth')
+    # recommended way from http://pytorch.org/docs/master/notes/serialization.html
+    torch.save(model.cpu().state_dict(), path)
+    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Training REA IPP MY location embeddings on Pytorch')
     parser.add_argument('--read_seq', type=str, help='Path to sequences.p')
     parser.add_argument('--read_loc_dict', type=str, help='Path to location dict for vocabs')
+    parser.add_argument('--model_dir', type=str, help='Path for model output')
     parser.add_argument('--batch_size', type=int, help='Batchsize for dataloader', default=16)
     parser.add_argument('--embedding_dims', type=int, help='Embedding size', default=128)
     parser.add_argument('--initial_lr', type=float, help='Initial LR', default=0.025)
@@ -49,6 +56,7 @@ if __name__ == "__main__":
     epochs = args.epochs
     initial_lr = args.initial_lr
     batch_size = args.batch_size
+    model_dir = args.model_dir
     
     
     with open(args.read_seq, 'rb') as f:
@@ -106,3 +114,6 @@ if __name__ == "__main__":
     end_time = datetime.datetime.now()
     time_diff = round((end_time - start_time).total_seconds() / 60, 2)
     logger.info('Total time taken: {:,} minutes'.format(time_diff))
+    
+    save_model(skipgram, model_dir)
+    skipgram.save_embeddings(f"{model_dir}/embeddings.npy")
