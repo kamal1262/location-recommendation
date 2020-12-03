@@ -11,6 +11,7 @@ from torch.autograd import Variable
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 
+import os
 import gzip
 import pickle
 import argparse
@@ -39,14 +40,17 @@ def save_model(model, model_dir):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Training REA IPP MY location embeddings on Pytorch')
-    parser.add_argument('--read_seq', type=str, help='Path to sequences.p')
-    parser.add_argument('--read_loc_dict', type=str, help='Path to location dict for vocabs')
-    parser.add_argument('--model_dir', type=str, help='Path for model output')
+    # parser.add_argument('--read_seq', type=str, help='Path to sequences.p')
+    # parser.add_argument('--read_loc_dict', type=str, help='Path to location dict for vocabs')
+    parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
     parser.add_argument('--batch_size', type=int, help='Batchsize for dataloader', default=16)
     parser.add_argument('--embedding_dims', type=int, help='Embedding size', default=128)
     parser.add_argument('--initial_lr', type=float, help='Initial LR', default=0.025)
     parser.add_argument('--epochs', type=int, help='No of Epochs', default=25)
     parser.add_argument('--shuffle', type=bool, help='Shuffle ?', default=True)
+    parser.add_argument('--output-data-dir', type=str, help='Sagemaker output dir', default=os.environ['SM_OUTPUT_DATA_DIR'])
+    parser.add_argument('--train', type=str, help='Sagemaker training dataset (seq, vocab)', default=os.environ['SM_CHANNEL_TRAIN'])
+    # parser.add_argument('--test', type=str, help='Sagemaker test dataset', help='Sagemaker output dir', default=os.environ['SM_CHANNEL_TEST'])
     args = parser.parse_args()
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -58,11 +62,14 @@ if __name__ == "__main__":
     batch_size = args.batch_size
     model_dir = args.model_dir
     
+    training_data = args.train
+    read_seq = training_data.split(',')[0]
+    read_loc_dict = training_data.split(',')[1]
     
-    with open(args.read_seq, 'rb') as f:
+    with open(read_seq, 'rb') as f:
         list_seq = pickle.load(f)
         
-    with open(args.read_loc_dict, 'rb') as f:
+    with open(read_loc_dict, 'rb') as f:
         dict_loc = pickle.load(f)
     
     vocab_size = len(dict_loc) # 14699

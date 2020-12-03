@@ -141,6 +141,8 @@ cython_debug/
 ***/web_seq.parquet
 ***/sample.csv
 ***/models/skipgram_epoch*
+***/models/id2loc
+***/models/loc2id
 ***/models/embeddings*
 ***/data/list_seq.p
 ***/runs/*
