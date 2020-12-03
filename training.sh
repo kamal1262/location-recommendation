@@ -7,4 +7,4 @@
 #     --initial-lr=0.025 \
 #     --epochs=25 \
 #     --shuffle=True
-python -m src.sm.train_skipgram
+SM_MODEL_DIR=models/output/ SM_OUTPUT_DATA_DIR=data/output/ SM_CHANNEL_TRAIN=data/list_seq.p SM_CHANNEL_VOCAB=models/loc2name.p python -m src.sm.train_skipgram
