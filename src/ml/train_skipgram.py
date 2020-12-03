@@ -49,7 +49,8 @@ if __name__ == "__main__":
     parser.add_argument('--epochs', type=int, help='No of Epochs', default=25)
     parser.add_argument('--shuffle', type=bool, help='Shuffle ?', default=True)
     parser.add_argument('--output-data-dir', type=str, help='Sagemaker output dir', default=os.environ['SM_OUTPUT_DATA_DIR'])
-    parser.add_argument('--train', type=str, help='Sagemaker training dataset (seq, vocab)', default=os.environ['SM_CHANNEL_TRAIN'])
+    parser.add_argument('--train', type=str, help='Sagemaker training dataset', default=os.environ['SM_CHANNEL_TRAIN'])
+    parser.add_argument('--vocab', type=str, help='Sagemaker vocab', default=os.environ['SM_CHANNEL_VOCAB'])
     # parser.add_argument('--test', type=str, help='Sagemaker test dataset', help='Sagemaker output dir', default=os.environ['SM_CHANNEL_TEST'])
     args = parser.parse_args()
     
@@ -62,9 +63,8 @@ if __name__ == "__main__":
     batch_size = args.batch_size
     model_dir = args.model_dir
     
-    training_data = args.train
-    read_seq = training_data.split(',')[0]
-    read_loc_dict = training_data.split(',')[1]
+    read_seq = args.train
+    read_loc_dict = args.vocab
     
     with open(read_seq, 'rb') as f:
         list_seq = pickle.load(f)

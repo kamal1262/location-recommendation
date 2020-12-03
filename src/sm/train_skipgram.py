@@ -16,6 +16,7 @@ if __name__ =='__main__':
     parser.add_argument('--output-data-dir', type=str, default=os.environ['SM_OUTPUT_DATA_DIR'])
     parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
     parser.add_argument('--train', type=str, default=os.environ['SM_CHANNEL_TRAIN'])
+    parser.add_argument('--vocab', type=str, default=os.environ['SM_CHANNEL_VOCAB'])
     parser.add_argument('--test', type=str, default=os.environ['SM_CHANNEL_TEST'])
 
     args, _ = parser.parse_known_args()
@@ -27,4 +28,7 @@ if __name__ =='__main__':
                             py_version='py3',
                             hyperparameters = {'epochs': 25, 'batch-size': 16, 'embedding-dims': 128, 'initial-lr': 0.025, 'shuffle': True})
     
-    pytorch_estimator.fit({'train': 's3://my-data-bucket/path/to/my/training/data/list_seq.p,s3://location-recommendation/02120202-skipgram/data/loc2name.p'})
+    pytorch_estimator.fit({
+        'train': 's3://my-data-bucket/path/to/my/training/data/list_seq.p', 
+        'vocab':'s3://location-recommendation/02120202-skipgram/data/loc2name.p'
+        })
