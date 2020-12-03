@@ -1,30 +1,16 @@
-import argparse
 import os
+import argparse
 import sagemaker
-import boto3
-from sagemaker.amazon.amazon_estimator import get_image_uri 
-from sagemaker.session import s3_input, Session
 
-# initialize hyperparameters
-hyperparameters = {
-        "max_depth":"5",
-        "eta":"0.2",
-        "gamma":"4",
-        "min_child_weight":"6",
-        "subsample":"0.7",
-        "objective":"reg:squarederror",
-        "num_round":"50"}
+import boto3
+from sagemaker.pytorch.estimator import PyTorch
+from sagemaker.session import s3_input, Session
+from sagemaker.amazon.amazon_estimator import get_image_uri 
 
 
 if __name__ =='__main__':
 
     parser = argparse.ArgumentParser()
-
-    # hyperparameters sent by the client are passed as command-line arguments to the script.
-    parser.add_argument('--epochs', type=int, default=50)
-    parser.add_argument('--batch-size', type=int, default=64)
-    parser.add_argument('--learning-rate', type=float, default=0.05)
-    parser.add_argument('--use-cuda', type=bool, default=False)
 
     # Data, model, and output directories
     parser.add_argument('--output-data-dir', type=str, default=os.environ['SM_OUTPUT_DATA_DIR'])
@@ -39,7 +25,6 @@ if __name__ =='__main__':
                             instance_count=1,
                             framework_version='1.6.0',
                             py_version='py3',
-                            hyperparameters = {'epochs': 20, 'batch-size': 64, 'learning-rate': 0.1})
+                            hyperparameters = {'epochs': 25, 'batch-size': 16, 'embedding-dims': 128, 'initial-lr': 0.025, 'shuffle': True})
     
-    pytorch_estimator.fit({'train': 's3://my-data-bucket/path/to/my/training/data',
-                        'test': 's3://my-data-bucket/path/to/my/test/data'})
+    pytorch_estimator.fit({'train': 's3://my-data-bucket/path/to/my/training/data/list_seq.p,s3://location-recommendation/02120202-skipgram/data/loc2name.p'})

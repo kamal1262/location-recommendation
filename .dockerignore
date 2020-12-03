@@ -1,0 +1,12 @@
+# git
+.git
+.gitattributes
+.gitignore
+README.md
+
+# ML related
+models/*
+data/*
+runs/*
+ui/*
+notebooks/*
