@@ -20,6 +20,7 @@ if __name__ =='__main__':
 
     args, _ = parser.parse_known_args()
     
+    # https://sagemaker.readthedocs.io/en/stable/frameworks/pytorch/sagemaker.pytorch.html
     pytorch_estimator = PyTorch('src/ml/train_skipgram.py',
                             source_dir='.',
                             instance_type='ml.p3.2xlarge',

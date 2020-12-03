@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# SM_MODEL_DIR=models/output/ SM_OUTPUT_DATA_DIR=data/output/ SM_CHANNEL_TRAIN=data/list_seq.p SM_CHANNEL_VOCAB=models/loc2name.p python \
+# SM_MODEL_DIR=models/output/ SM_OUTPUT_DATA_DIR=data/output/ SM_CHANNEL_TRAIN=data/list_seq.p SM_CHANNEL_VOCAB=data/loc2name.p python \
 #     -m src.ml.train_skipgram \
 #     --batch-size=16 \
 #     --embedding-dims=128 \
