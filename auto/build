@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+export AWS_REGION="${AWS_REGION:=ap-southeast-1}"
+export IMAGE_NAME="mobile-location-recommendation"
+export DOCKERFILE_PATH="Dockerfile"
+
+function exists() {
+    command -v "${1:-}" >/dev/null 2>&1
+}
+
+function create_ecr_repo() {
+
+    export REPO_NAME="${1:-}"
+    export REGION="${2:-}"
+    aws ecr describe-repositories --repository-names "${REPO_NAME}" --region "${REGION}" || aws ecr create-repository --repository-name "${REPO_NAME}" --region "${REGION}"
+}
+
+function authenticate_to_ecr() {
+
+    AWS_ACCOUNT_ID="${1:-}"
+    REGION="${2:-}"
+
+    if exists docker; then
+        echo "docker found in PATH."
+    else
+        echo "docker NOT found in PATH, Exiting!!!"
+        exit 1
+    fi
+    echo "Authenticating to ECR"
+    eval "$(docker run --rm --network=host -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_SESSION_TOKEN --rm xueshanf/awscli aws ecr get-login --no-include-email --registry-ids "${AWS_ACCOUNT_ID}" --region "${REGION}")"
+}
+
+if [[ -n "${ENVIRONMENT:-}" ]]; then
+    echo "Environment is ${ENVIRONMENT}"
+    if [[ "${ENVIRONMENT}" = "DEV" ]]; then
+
+        export AWS_PROJECT_ID="793999821937"
+
+    elif [[ "${ENVIRONMENT}" = "STAGING" ]]; then
+
+        export AWS_PROJECT_ID="958356994665"
+
+    elif [[ "${ENVIRONMENT}" = "PROD" ]]; then
+
+        export AWS_PROJECT_ID="961063351939"
+
+    else
+        echo "Unsupported ENVIRONMENT Value, Exiting!!!"
+        exit 1
+    fi
+
+    echo "AWS Project ID => ${AWS_PROJECT_ID}"
+    # creates ecr repo if it doesn't exist. Risky in case of typo.
+    create_ecr_repo "${IMAGE_NAME}" "${AWS_REGION}"
+    export IMAGE_URL="${AWS_PROJECT_ID}".dkr.ecr."${AWS_REGION}".amazonaws.com/"${IMAGE_NAME}":"${BUILDKITE_BUILD_NUMBER:-latest}"
+    authenticate_to_ecr "${AWS_PROJECT_ID}" "${AWS_REGION}"
+else
+    echo "Value of ENVIRONMENT can't be null, Exiting!!!"
+    exit 1
+fi
+
+echo "Building the docker image"
+docker build --network=host -t "${IMAGE_NAME}":"${BUILDKITE_BUILD_NUMBER:-latest}" -f "${DOCKERFILE_PATH}" .
+
+echo "Tagging the image"
+docker tag "${IMAGE_NAME}":"${BUILDKITE_BUILD_NUMBER:-latest}" "${IMAGE_URL}"
+
+echo "Pushing the image to Container Registry"
+docker push "${IMAGE_URL}"

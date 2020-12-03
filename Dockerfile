@@ -1,17 +1,11 @@
-# source: https://github.com/aws/deep-learning-containers/blob/master/pytorch/training/docker/1.6.0/py3/cu110/Dockerfile.gpu
-# The tag for the base image is: 11.0-cudnn8-devel-ubuntu16.04
-FROM nvidia/cuda:11.0-cudnn8-devel-ubuntu16.04
+# The tag for the base image is: 10.1-cudnn7-devel-ubuntu16.04
+FROM nvidia/cuda@sha256:4979db047661dc0003594fb20d37cce6d6c7e989252f4e3fb0beb39874a078e2
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="2"
 
-ARG PYTHON_VERSION=3.6.10
+ARG PYTHON_VERSION=3.6.6
 ARG OPEN_MPI_VERSION=4.0.1
-ARG CUBLAS_VERSION=11.2.0.252-1_amd64
-
-# The smdebug pipeline relies for following format to perform string replace and trigger DLC pipeline for validating
-# the nightly builds. Therefore, while updating the smdebug version, please ensure that the format is not disturbed.
-ARG SMDEBUG_VERSION=0.9.4
+ARG CUBLAS_VERSION=10.2.1.243-1_amd64
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
@@ -23,30 +17,24 @@ ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 ENV PATH /opt/conda/bin:$PATH
-ENV TORCH_CUDA_ARCH_LIST="3.5 3.7 5.2 6.0 6.1 7.0+PTX 8.0"
+ENV TORCH_CUDA_ARCH_LIST="3.5 5.2 6.0 6.1 7.0+PTX"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
-ENV HOROVOD_VERSION=0.19.5
+ENV HOROVOD_VERSION=0.19.1
 ENV DGLBACKEND=pytorch
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
-ARG PT_TRAINING_URL=https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_aws/20201001-012513/a40b1c195ba679596118514fcbeae1f422591426/gpu/torch-1.6.0-cp36-cp36m-manylinux1_x86_64.whl
-ARG PT_TORCHVISION_URL=https://torchvision-build.s3-us-west-2.amazonaws.com/1.6.0/gpu/cuda-11-0/torchvision-0.7.0a0%2B78ed10c-cp36-cp36m-manylinux1_x86_64.whl
-
 RUN apt-get update \
- && apt-get install -y --allow-change-held-packages --no-install-recommends \
+ && apt-get install -y  --allow-downgrades --allow-change-held-packages --no-install-recommends \
     build-essential \
     ca-certificates \
     cmake \
-    cuda-command-line-tools-11-0 \
-    cuda-cudart-11-0 \
-    libcufft-dev-11-0 \
-    libnccl-dev=2.7.8-1+cuda11.0 \
-    libcurand-dev-11-0 \
-    libcusolver-dev-11-0 \
-    libcusparse-dev-11-0 \
+    cuda-command-line-tools-10-1 \
+    cuda-cufft-10-1 \
+    cuda-curand-10-1 \
+    cuda-cusolver-10-1 \
+    cuda-cusparse-10-1 \
     curl \
-    emacs \
     git \
     jq \
     libglib2.0-0 \
@@ -62,19 +50,20 @@ RUN apt-get update \
     vim \
     wget \
     zlib1g-dev \
-# These packages need to be removed once there are stable packages available for them in CUDA 11
-# && apt-get remove -y cuda-cufft-dev-10-1 \
-#    cuda-cusolver-dev-10-1 \
-#    cuda-npp-dev-10-1 \
-#    cuda-nvgraph-dev-10-1 \
-#    cuda-nvjpeg-dev-10-1 \
-#    cuda-nvrtc-dev-10-1 \
+ && apt-get remove -y cuda-cufft-dev-10-1 \
+    cuda-curand-dev-10-1 \
+    cuda-cusolver-dev-10-1 \
+    cuda-npp-dev-10-1 \
+    cuda-nvgraph-dev-10-1 \
+    cuda-nvjpeg-dev-10-1 \
+    cuda-nvrtc-dev-10-1 \
+ && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/libcublas-11-0_${CUBLAS_VERSION}.deb \
- && dpkg -i libcublas-11-0_${CUBLAS_VERSION}.deb \
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64/libcublas10_${CUBLAS_VERSION}.deb \
+ && dpkg -i libcublas10_${CUBLAS_VERSION}.deb \
  && apt-get install -f -y \
- && rm libcublas-11-0_${CUBLAS_VERSION}.deb
+ && rm libcublas10_${CUBLAS_VERSION}.deb
 
 RUN wget https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
@@ -95,28 +84,29 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value \
  && rm ~/miniconda.sh \
  && /opt/conda/bin/conda install -y -c anaconda \
     python=$PYTHON_VERSION \
-    numpy \
-    ipython \
-    mkl \
-    mkl-include \
-    cython \
-    typing \
-    future \
+    numpy==1.16.4 \
+    ipython==7.10.1 \
+    mkl==2019.4 \
+    mkl-include==2019.4 \
+    cython==0.29.12 \
+    typing==3.6.4 \
+    future==0.17.1 \
     "pyopenssl>=17.5.0" \
+ && conda install -c dglteam -y dgl-cuda10.1==0.4.3 \
  && /opt/conda/bin/conda clean -ya
 
-# DGL has noted incompatibility issues with CUDA 11.0 - regarding specific libraries i.e. CUB. Re-enable this package once this issue has been resolved.
-# RUN pip install https://aws-pytorch-binaries.s3-us-west-2.amazonaws.com/r1.6.0_cuda/dgl-0.5.2-cp36-cp36m-manylinux1_x86_64.whl
-
-RUN conda install -c pytorch magma-cuda110==2.5.2 \
+RUN conda install -c pytorch magma-cuda101==2.5.1 \
  && conda install -c conda-forge \
-    opencv \
- && conda install -y scikit-learn \
-    pandas \
-    h5py \
-    requests \
+    opencv==4.0.1 \
+ && conda install -y scikit-learn==0.21.2 \
+    pandas==0.25.0 \
+    h5py==2.9.0 \
+    requests==2.22.0 \
     libgcc \
  && conda clean -ya
+
+RUN pip install psutil==5.6.7 \
+                Pillow==7.1.0
 
 WORKDIR /opt/pytorch
 
@@ -132,30 +122,27 @@ RUN /opt/conda/bin/conda config --set ssl_verify False \
 
 # Uninstall torch and torchvision before installing the custom versions from an S3 bucket
 RUN pip install \
-    --no-cache-dir smdebug==${SMDEBUG_VERSION} \
-    "sagemaker>=2,<3" \
-    sagemaker-experiments==0.* \
-    --no-cache-dir "sagemaker-pytorch-training<3" \
+    --no-cache-dir smdebug==0.7.2 \
+    sagemaker==1.50.17 \
+    sagemaker-experiments==0.1.7 \
     --no-cache-dir fastai==1.0.59 \
-    "awscli<2" \
-    psutil \
-    Pillow \
-    scipy \
-    click \
-    "cryptography>3.2" \
- && pip install --no-cache-dir -U ${PT_TRAINING_URL} \
+    awscli \
+    scipy==1.2.2 \
+ && pip install --no-cache-dir -U https://pytorch-aws.s3-us-west-2.amazonaws.com/pytorch-1.5.0/py3/gpu/torch-1.5.0-cp36-cp36m-manylinux1_x86_64.whl \
  && pip uninstall -y torchvision \
- && pip install --no-deps --no-cache-dir -U ${PT_TORCHVISION_URL}
+ && pip install --no-deps --no-cache-dir -U \
+     https://torchvision-build.s3.amazonaws.com/1.5.0/gpu/torchvision-0.6.0-cp36-cp36m-linux_x86_64.whl
 
 # Install Horovod
 RUN pip uninstall -y horovod \
- && ldconfig /usr/local/cuda-11.0/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.0 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && ldconfig /usr/local/cuda-10.1/targets/x86_64-linux/lib/stubs \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-10.1 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
 
 # Install Nvidia Apex
 RUN git clone https://github.com/NVIDIA/apex.git \
  && cd apex \
+ && git checkout f3a960f \
  && pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
 
 # Configure Open MPI and configure NCCL parameters
@@ -169,24 +156,23 @@ RUN mv /home/.openmpi/bin/mpirun /home/.openmpi/bin/mpirun.real \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
 
-# Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
-RUN apt-get update \
- && apt-get install -y  --allow-downgrades --allow-change-held-packages --no-install-recommends \
- && apt-get install -y --no-install-recommends openssh-client openssh-server \
+# Install OpenSSH for MPI to communicate between containers, Allow OpenSSH to talk to containers without asking for confirmation
+RUN apt-get update && apt-get install -y --no-install-recommends openssh-client openssh-server \
  && mkdir -p /var/run/sshd \
  && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
+ && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /
 
-ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+RUN pip install --no-cache-dir "sagemaker-pytorch-training<2"
 
-RUN chmod +x /usr/local/bin/start_with_right_hostname.sh \
- && chmod +x /usr/local/bin/deep_learning_container.py \
- && wget -O /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.6.0/license.txt
+RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
+
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.5.0/license.txt
 
 # Starts framework
-ENTRYPOINT ["bash", "-m", "training.sh"]
+ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
