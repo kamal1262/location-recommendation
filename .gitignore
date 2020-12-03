@@ -146,3 +146,6 @@ cython_debug/
 ***/models/embeddings*
 ***/data/list_seq.p
 ***/runs/*
+
+# Mac
+***/.DS_Store

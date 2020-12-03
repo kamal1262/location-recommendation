@@ -66,10 +66,10 @@ if __name__ == "__main__":
     read_seq = args.train
     read_loc_dict = args.vocab
     
-    with open(read_seq, 'rb') as f:
+    with open(f"{read_seq}/list_seq.p", 'rb') as f:
         list_seq = pickle.load(f)
         
-    with open(read_loc_dict, 'rb') as f:
+    with open(f"{read_loc_dict}/loc2name.p", 'rb') as f:
         dict_loc = pickle.load(f)
     
     vocab_size = len(dict_loc) # 14699
