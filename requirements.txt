@@ -3,7 +3,9 @@ sagemaker
 sagemaker-training
 scipy
 scikit-learn
+smdebug
 statsmodels
+tensorboard
 torch
 torchvision
 tqdm==4.51.0

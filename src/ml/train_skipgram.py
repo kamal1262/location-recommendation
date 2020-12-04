@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 
 import os
 import gzip
@@ -74,6 +75,9 @@ if __name__ == "__main__":
     
     vocab_size = len(dict_loc) # 14699
     
+    # Tensorboard writer config
+    writer = SummaryWriter('/opt/output/tensorboard/')
+    
     # Load dataloader
     sequences = Sequences(seq_list=list_seq, vocab_dict=dict_loc)
     dataset = SequencesDataset(sequences)
@@ -109,6 +113,9 @@ if __name__ == "__main__":
             running_loss = running_loss * 0.9 + loss.item() * 0.1
             
         logger.info("Epoch: {}, Loss: {:.4f}, Lr: {:.6f}".format(epoch, running_loss, optimizer.param_groups[0]['lr']))
+        writer.add_scalar('Training loss', loss.item(), epoch)
+        writer.add_scalar('Running loss', running_loss, epoch)
+
         results.append([epoch, i, running_loss])
         running_loss = 0
 

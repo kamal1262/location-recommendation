@@ -8,8 +8,11 @@
 #     --epochs=25 \
 #     --shuffle=True
 
-SM_MODEL_DIR=s3://location-recommendation/02120202-skipgram/output/ \
-    SM_OUTPUT_DATA_DIR=s3://location-recommendation/02120202-skipgram/output/ \
+SM_MODEL_DIR=/opt/ml/output/model/ \
+    SM_OUTPUT_DATA_DIR=/opt/ml/output/data/ \
     SM_CHANNEL_TRAIN=s3://location-recommendation/02120202-skipgram/data/list_seq.p \
     SM_CHANNEL_VOCAB=s3://location-recommendation/02120202-skipgram/data/loc2name.p \
+    SM_CURRENT_HOST="skipgram-location" \
+    SAGEMAKER_REGION="ap-southeast-1" \
+    S3_PATH="s3://location-recommendation/02120202-skipgram/" \
     python -m src.sm.train_skipgram

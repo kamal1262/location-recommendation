@@ -6,6 +6,7 @@ import boto3
 from sagemaker.pytorch.estimator import PyTorch
 from sagemaker.session import s3_input, Session
 from sagemaker.amazon.amazon_estimator import get_image_uri 
+from sagemaker.debugger import Rule, DebuggerHookConfig, CollectionConfig, rule_configs
 
 
 if __name__ =='__main__':
@@ -17,12 +18,21 @@ if __name__ =='__main__':
     parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
     parser.add_argument('--train', type=str, default=os.environ['SM_CHANNEL_TRAIN'])
     parser.add_argument('--vocab', type=str, default=os.environ['SM_CHANNEL_VOCAB'])
+    parser.add_argument('--s3-path', type=str, default=os.environ['S3_PATH'])
 
     args, _ = parser.parse_known_args()
     
+    # Rules parameters
+    rules = [ 
+                Rule.sagemaker(rule_configs.vanishing_gradient())
+                Rule.sagemaker(rule_configs.loss_not_decreasing())
+    ]
+    
     # https://sagemaker.readthedocs.io/en/stable/frameworks/pytorch/sagemaker.pytorch.html
     pytorch_estimator = PyTorch('src/ml/train_skipgram.py',
+                            base_job_name="pytorch-skipgram",
                             source_dir='.',
+                            rules=rules,
                             instance_type='ml.p3.2xlarge',
                             instance_count=1,
                             role="arn:aws:iam::793999821937:role/SagemakerNotebookRole",
@@ -33,4 +43,4 @@ if __name__ =='__main__':
     pytorch_estimator.fit({
         'train': args.train, 
         'vocab': args.vocab,
-        })
+        }, wait=False)
