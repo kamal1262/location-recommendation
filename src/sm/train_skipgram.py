@@ -6,7 +6,6 @@ import boto3
 from sagemaker.pytorch.estimator import PyTorch
 from sagemaker.session import s3_input, Session
 from sagemaker.amazon.amazon_estimator import get_image_uri 
-from sagemaker.debugger import Rule, DebuggerHookConfig, CollectionConfig, rule_configs
 
 
 if __name__ =='__main__':
@@ -22,15 +21,20 @@ if __name__ =='__main__':
 
     args, _ = parser.parse_known_args()
     
+    metrics = [
+        {'Name': 'train:loss', 'Regex': 'Loss: (.*?),'}
+    ]
+    
     # https://sagemaker.readthedocs.io/en/stable/frameworks/pytorch/sagemaker.pytorch.html
     pytorch_estimator = PyTorch('src/ml/train_skipgram.py',
                             source_dir='.',
                             instance_type='ml.p3.2xlarge',
                             instance_count=1,
+                            metric_definitions=metrics,
                             role="arn:aws:iam::793999821937:role/SagemakerNotebookRole",
                             framework_version='1.6.0',
                             py_version='py3',
-                            hyperparameters = {'epochs': 25, 'batch-size': 128, 'embedding-dims': 128, 'initial-lr': 0.025, 'shuffle': True})
+                            hyperparameters = {'epochs': 2, 'batch-size': 128, 'embedding-dims': 128, 'initial-lr': 0.025, 'shuffle': True})
     
     pytorch_estimator.fit({
         'train': args.train, 
