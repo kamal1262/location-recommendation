@@ -23,22 +23,22 @@ if __name__ =='__main__':
     args, _ = parser.parse_known_args()
     
     # Rules parameters
-    rules = [ 
-                Rule.sagemaker(rule_configs.vanishing_gradient())
-                Rule.sagemaker(rule_configs.loss_not_decreasing())
-    ]
+    # rules = [ 
+    #             Rule.sagemaker(rule_configs.vanishing_gradient())
+    #             Rule.sagemaker(rule_configs.loss_not_decreasing())
+    # ]
     
     # https://sagemaker.readthedocs.io/en/stable/frameworks/pytorch/sagemaker.pytorch.html
     pytorch_estimator = PyTorch('src/ml/train_skipgram.py',
-                            base_job_name="pytorch-skipgram",
+                            # base_job_name="pytorch-skipgram",
                             source_dir='.',
-                            rules=rules,
+                            # rules=rules,
                             instance_type='ml.p3.2xlarge',
                             instance_count=1,
                             role="arn:aws:iam::793999821937:role/SagemakerNotebookRole",
                             framework_version='1.6.0',
                             py_version='py3',
-                            hyperparameters = {'epochs': 25, 'batch-size': 16, 'embedding-dims': 128, 'initial-lr': 0.025, 'shuffle': True})
+                            hyperparameters = {'epochs': 20, 'batch-size': 128, 'embedding-dims': 128, 'initial-lr': 0.025, 'shuffle': True})
     
     pytorch_estimator.fit({
         'train': args.train, 
