@@ -61,7 +61,7 @@ class Utils:
 
 dict_idx2loc = Utils.load_pickle("models/idx2loc.p")
 dict_loc2idx = Utils.load_pickle("models/loc2idx.p")
-dict_loc2name = Utils.load_pickle("models/loc2name.p")
+dict_loc2name = Utils.load_pickle("data/loc2name.p")
 
 dict_idx2name = {}
 for x in dict_idx2loc.keys():
